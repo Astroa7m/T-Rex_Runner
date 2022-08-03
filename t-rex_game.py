@@ -23,14 +23,10 @@ class TRexRunner:
         pygame.display.set_icon(game_icon)
         self.clock = pygame.time.Clock()
         self.start_time = pygame.time.get_ticks()
-        # current stage is used to identify the current stage of the game
-
         # scoring
         self.score = Score(self)
         # play again button
         self.button = Button(self)
-        self.collided_cactus = None
-        self.collided_bird = None
         # init sprites
 
         # ground
@@ -60,6 +56,9 @@ class TRexRunner:
             else:
                 self._show_game_over_text_and_play_again()
             self._listen_for_events()
+            # Update trex
+            self.trex_group.draw(self.screen)
+            self.trex.update(self._check_collisions())
             pygame.display.flip()
             self.clock.tick(60)
 
@@ -97,19 +96,17 @@ class TRexRunner:
         self.cloud_group.draw(self.screen)
         self.cactus_group.draw(self.screen)
         self.bird_group.draw(self.screen)
-        self.trex_group.draw(self.screen)
         if not self.trex.collided:
             self._update_sprites()
-        self._check_collisions()
 
     def _update_sprites(self):
-        # getting current time to show/update some of the sprites
+        # getting current time to show/update some sprites
         current_time = pygame.time.get_ticks()
         current_time_int_deci = int((current_time - self.start_time) * 0.01)
-        ## updating score
+        # updating score
         self.score.update_score(current_time_int_deci)
         # showing only birds after 450 deciseconds
-        show_bird = current_time_int_deci > 50
+        show_bird = current_time_int_deci > 450
         # starting show cacti after 40 deciseconds of starting the game
         forty_deci_passed = current_time_int_deci > 40
         show_cacti = forty_deci_passed and not self.cacti_count
@@ -127,9 +124,6 @@ class TRexRunner:
             sprite_type = random.randint(0, 1)
         else:
             sprite_type = 0
-
-        # Update trex
-        self.trex.update()
 
         # Update ground
         for ground in self.ground_group.sprites():
@@ -212,32 +206,24 @@ class TRexRunner:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
-            elif event.type == pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN and not self.trex.collided:
                 if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
                     self.trex.jumping = True
                     self.trex.crouching = False
                 if event.key == pygame.K_DOWN:
                     self.trex.jumping = False
                     self.trex.crouching = True
-            elif event.type == pygame.KEYUP:
+            elif event.type == pygame.KEYUP and not self.trex.collided:
                 self.trex.crouching = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
-                if self.button.rect.collidepoint(mouse_pos):
+                if self.trex.collided and self.button.rect.collidepoint(mouse_pos):
                     self._reset()
 
     def _check_collisions(self):
-        trex_birds_collision, trex_cacti_collision = False, False
-        for cactus in self.cactus_group:
-            trex_cacti_collision = pygame.sprite.collide_circle(self.trex, cactus)
-            self.collided_cactus = cactus
-
-        for bird in self.bird_group:
-            trex_birds_collision = pygame.sprite.collide_circle(self.trex, bird)
-            if trex_birds_collision:
-                self.collided_bird = bird
-
-        if trex_birds_collision or trex_cacti_collision:
+        cactus_hit = pygame.sprite.spritecollide(self.trex, self.cactus_group, False, pygame.sprite.collide_mask)
+        bird_hits = pygame.sprite.spritecollide(self.trex, self.bird_group, False, pygame.sprite.collide_mask)
+        if bird_hits or cactus_hit:
             self.trex.collide()
 
     def _show_game_over_text_and_play_again(self):
@@ -249,13 +235,13 @@ class TRexRunner:
         self.button.blit(x, y2)
 
     def _reset(self):
-        if self.collided_bird:
-            self.collided_bird.kill()
-        if self.collided_cactus:
-            self.collided_cactus.kill()
         self.start_time = pygame.time.get_ticks()
-        self.trex.collided = False
+        self._drop_enemy_sprites()
+        self.trex.reset()
 
+    def _drop_enemy_sprites(self):
+        self.cactus_group.empty()
+        self.bird_group.empty()
 
 
 if __name__ == '__main__':

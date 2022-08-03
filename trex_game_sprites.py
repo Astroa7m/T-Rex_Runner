@@ -14,10 +14,12 @@ class TRex(pygame.sprite.Sprite):
         self._init_crouching()
         # init jumping image
         self.jump_image = pygame.image.load("assets/t-rex/t-rex-0.png").convert_alpha()
+        self.collision_image = pygame.image.load("assets/t-rex/t-rex-4.png").convert_alpha()
 
         # setting current image to start animating with walking images
         self.current_sprite_index = 0
         self.image = self.trex_walking_sprites[self.current_sprite_index]
+        self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
         self.rect.center = (self.rect.width, self.rect.height)
         self.y = y
@@ -27,7 +29,6 @@ class TRex(pygame.sprite.Sprite):
         self.screen_rect = self.screen.get_rect()
 
         # trex attributes
-        #self.radius = self.rect.width * 0.4
         self.jump_count = self.settings.jump_count
         self.jumping = False
         self.crouching = False
@@ -35,16 +36,19 @@ class TRex(pygame.sprite.Sprite):
         self.should_update = True
         self.collided = False
 
-    def update(self):
-        pygame.draw.rect(self.screen, (255, 0, 0), pygame.Rect(self.rect.left, self.rect.top, self.rect.width, self.rect.height), 3)
+    def update(self, collision_fun):
         self._set_y()
-        if not self.jumping and not self.crouching:
-            self._animate_through(sprites_list=self.trex_walking_sprites)
-        elif self.jumping:
-            self._jump()
-        elif self.crouching:
-            self.jump_count = self.settings.jump_count
-            self._animate_through(sprites_list=self.trex_crouching_sprites)
+        if self.collided:
+            self.image = self.collision_image
+        else:
+            if not self.jumping and not self.crouching:
+                self._animate_through(sprites_list=self.trex_walking_sprites)
+            elif self.jumping:
+                self._jump()
+            elif self.crouching:
+                self.jump_count = self.settings.jump_count
+                self._animate_through(sprites_list=self.trex_crouching_sprites)
+            collision_fun
 
     def _set_y(self):
         if not self.crouching and not self.jumping:
@@ -84,9 +88,16 @@ class TRex(pygame.sprite.Sprite):
 
     def collide(self):
         self.collided = True
-        self.image = pygame.image.load("assets/t-rex/t-rex-4.png")
         if self.crouching:
             self.rect.y = self.y - self.rect.height * 0.5
+
+    def reset(self):
+        self.jump_count = self.settings.jump_count
+        self.jumping = False
+        self.crouching = False
+        self.jump = False
+        self.should_update = True
+        self.collided = False
 
 
 class Ground(pygame.sprite.Sprite):
@@ -147,16 +158,16 @@ class Cactus(pygame.sprite.Sprite):
         self.screen_rect = self.screen.get_rect()
         self.settings = t_game.settings
         # used for circle collision
-        #self.radius = self.rect.width * 0.3
+        self.radius = self.rect.width * 0.3
         if current_x:
             x = current_x + self.rect.width / 2
         else:
             x = self.screen_rect.width
         y = extra_y - self.rect.height / 3
         self.rect.center = (x, y)
+        self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
-        rect = pygame.draw.rect(self.screen, (255, 0, 0), pygame.Rect(self.rect.left, self.rect.top, self.rect.width, self.rect.height), 3)
         self.rect.x -= self.settings.ground_velocity
         self._check_kill()
 
@@ -215,6 +226,7 @@ class Bird(pygame.sprite.Sprite):
             self.rect.bottom = list_of_ys[1]
 
         self.rect.x = self.screen_rect.width
+        self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
         self._animate_through()
