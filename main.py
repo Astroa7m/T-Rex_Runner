@@ -1,5 +1,6 @@
+s = None
 
-
-x = 1400
-
-print((1403 / 100) % 2 == 0)
+if s:
+    print("yes")
+else:
+    print("no")

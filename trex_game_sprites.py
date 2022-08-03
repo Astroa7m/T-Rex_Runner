@@ -27,12 +27,16 @@ class TRex(pygame.sprite.Sprite):
         self.screen_rect = self.screen.get_rect()
 
         # trex attributes
+        #self.radius = self.rect.width * 0.4
         self.jump_count = self.settings.jump_count
         self.jumping = False
         self.crouching = False
         self.jump = False
+        self.should_update = True
+        self.collided = False
 
     def update(self):
+        pygame.draw.rect(self.screen, (255, 0, 0), pygame.Rect(self.rect.left, self.rect.top, self.rect.width, self.rect.height), 3)
         self._set_y()
         if not self.jumping and not self.crouching:
             self._animate_through(sprites_list=self.trex_walking_sprites)
@@ -63,17 +67,26 @@ class TRex(pygame.sprite.Sprite):
         self.trex_crouching_sprites.append(pygame.image.load("assets/t-rex/t-rex-6.png").convert_alpha())
 
     def _jump(self):
+        y = self.rect.y
         self.image = self.jump_image
         if self.jump_count >= -self.settings.jump_count:
             # identify whether the sprite is moving against the gravity
+            # while 1 is against and -1 is with
             status = 1
             if self.jump_count < 0:
                 status = -1
-            self.rect.y -= ((self.jump_count ** 2) * 0.5 * status) / 2
+            y -= ((self.jump_count ** 2) * 0.5 * status) / 2
+            self.rect.y = y
             self.jump_count -= 1
         else:
             self.jumping = False
             self.jump_count = self.settings.jump_count
+
+    def collide(self):
+        self.collided = True
+        self.image = pygame.image.load("assets/t-rex/t-rex-4.png")
+        if self.crouching:
+            self.rect.y = self.y - self.rect.height * 0.5
 
 
 class Ground(pygame.sprite.Sprite):
@@ -90,7 +103,7 @@ class Ground(pygame.sprite.Sprite):
         return self.rect.right <= self.screen_rect.right
 
     def set_left(self, right):
-        self.rect.left = right - 5
+        self.rect.left = right - 10
 
     def _check_kill(self):
         if self.rect.right <= self.screen_rect.left:
@@ -133,6 +146,8 @@ class Cactus(pygame.sprite.Sprite):
         self.screen = t_game.screen
         self.screen_rect = self.screen.get_rect()
         self.settings = t_game.settings
+        # used for circle collision
+        #self.radius = self.rect.width * 0.3
         if current_x:
             x = current_x + self.rect.width / 2
         else:
@@ -141,6 +156,7 @@ class Cactus(pygame.sprite.Sprite):
         self.rect.center = (x, y)
 
     def update(self):
+        rect = pygame.draw.rect(self.screen, (255, 0, 0), pygame.Rect(self.rect.left, self.rect.top, self.rect.width, self.rect.height), 3)
         self.rect.x -= self.settings.ground_velocity
         self._check_kill()
 
@@ -163,7 +179,7 @@ class Star(pygame.sprite.Sprite):
         self.rect.center = (self.x, self.y)
 
     def update(self):
-        self.x -= float(self.settings.star_velocity)
+        self.x -= self.settings.star_velocity
         self.rect.center = (self.x, self.y)
         self._check_kill()
 
@@ -181,20 +197,21 @@ class Bird(pygame.sprite.Sprite):
         self.current_sprite_index = 0
         self.image = self.bird_sprites[self.current_sprite_index]
         self.rect = self.image.get_rect()
+        self.screen = t_game.screen
         self.screen_rect = t_game.screen_rect
         self.settings = t_game.settings
-        # todo fix this later
+        # used for circle collision
+        self.radius = self.rect.width * 0.3
         # generating random number between the list of y length
-        # as 0 is top, 1 is center, 2 is bottom of the trex
+        # as 0 is top, 1 is bottom
         # in order to place the y of the bird correctly
-        index = random.randint(0, len(list_of_ys))
+        # so if index == 0 we place top of bird to top of trex with some space (bird height halved)
+        # and if index == 1 bottom of bird is bottom of trex
+        index = random.randrange(0, len(list_of_ys))
         self.y = 0
-        print(index)
         if index == 0:
-            self.rect.top = list_of_ys[0]
+            self.rect.top = list_of_ys[0] - self.rect.height / 2
         elif index == 1:
-            self.rect.bottom = list_of_ys[0]
-        elif index == 2:
             self.rect.bottom = list_of_ys[1]
 
         self.rect.x = self.screen_rect.width
@@ -213,3 +230,27 @@ class Bird(pygame.sprite.Sprite):
         if self.current_sprite_index >= len(self.bird_sprites):
             self.current_sprite_index = 0
         self.image = self.bird_sprites[int(self.current_sprite_index)]
+
+
+class Moon(pygame.sprite.Sprite):
+
+    def __init__(self, t_game):
+        super().__init__()
+        i = random.randint(0, 6)
+        self.image = pygame.image.load(f"assets/moon/moon-{i}.png")
+        self.rect = self.image.get_rect()
+        self.settings = t_game.settings
+        self.screen = t_game.screen
+        self.screen_rect = self.screen.get_rect()
+        self.x = self.screen_rect.width
+        self.y = self.screen_rect.height * .45
+        self.rect.center = (self.x, self.y)
+
+    def update(self):
+        self.x -= self.settings.moon_velocity
+        self.rect.center = (self.x, self.y)
+        self._check_kill()
+
+    def _check_kill(self):
+        if self.rect.right < 0:
+            self.kill()
