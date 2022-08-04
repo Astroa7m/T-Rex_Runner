@@ -236,6 +236,7 @@ class TRexRunner:
 
     def _reset(self):
         self.start_time = pygame.time.get_ticks()
+        self.score.fetch_high_score()
         self._drop_enemy_sprites()
         self.trex.reset()
 
