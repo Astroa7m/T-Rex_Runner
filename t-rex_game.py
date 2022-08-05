@@ -50,11 +50,12 @@ class TRexRunner:
 
     def start_game(self):
         while True:
-            if True:
+            if not self.trex.collided:
                 self.screen.fill(self.settings.screen_background)
                 self._draw_sprites()
             else:
                 self._show_game_over_text_and_play_again()
+            self.trex_group.draw(self.screen)
             self._listen_for_events()
             pygame.display.flip()
             self.clock.tick(60)
@@ -93,7 +94,6 @@ class TRexRunner:
         self.cloud_group.draw(self.screen)
         self.cactus_group.draw(self.screen)
         self.bird_group.draw(self.screen)
-        self.trex_group.draw(self.screen)
         self._update_sprites()
 
     def _update_sprites(self):
