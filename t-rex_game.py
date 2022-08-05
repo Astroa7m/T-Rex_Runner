@@ -50,15 +50,12 @@ class TRexRunner:
 
     def start_game(self):
         while True:
-            if not self.trex.collided:
+            if True:
                 self.screen.fill(self.settings.screen_background)
                 self._draw_sprites()
             else:
                 self._show_game_over_text_and_play_again()
             self._listen_for_events()
-            # Update trex
-            self.trex_group.draw(self.screen)
-            self.trex.update(self._check_collisions())
             pygame.display.flip()
             self.clock.tick(60)
 
@@ -96,8 +93,8 @@ class TRexRunner:
         self.cloud_group.draw(self.screen)
         self.cactus_group.draw(self.screen)
         self.bird_group.draw(self.screen)
-        if not self.trex.collided:
-            self._update_sprites()
+        self.trex_group.draw(self.screen)
+        self._update_sprites()
 
     def _update_sprites(self):
         # getting current time to show/update some sprites
@@ -124,6 +121,10 @@ class TRexRunner:
             sprite_type = random.randint(0, 1)
         else:
             sprite_type = 0
+
+        # Update trex
+        self.trex.update()
+        self._check_collisions()
 
         # Update ground
         for ground in self.ground_group.sprites():
@@ -206,6 +207,8 @@ class TRexRunner:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
+                # todo modify this when starting the game
+                # todo space or up to start the game and so on
             elif event.type == pygame.KEYDOWN and not self.trex.collided:
                 if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
                     self.trex.jumping = True
@@ -221,8 +224,8 @@ class TRexRunner:
                     self._reset()
 
     def _check_collisions(self):
-        cactus_hit = pygame.sprite.spritecollide(self.trex, self.cactus_group, False, pygame.sprite.collide_mask)
-        bird_hits = pygame.sprite.spritecollide(self.trex, self.bird_group, False, pygame.sprite.collide_mask)
+        cactus_hit = pygame.sprite.spritecollide(self.trex, self.cactus_group, True, pygame.sprite.collide_mask)
+        bird_hits = pygame.sprite.spritecollide(self.trex, self.bird_group, True, pygame.sprite.collide_mask)
         if bird_hits or cactus_hit:
             self.trex.collide()
 

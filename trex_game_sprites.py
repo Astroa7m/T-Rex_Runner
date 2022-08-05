@@ -36,19 +36,15 @@ class TRex(pygame.sprite.Sprite):
         self.should_update = True
         self.collided = False
 
-    def update(self, collision_fun):
+    def update(self):
         self._set_y()
-        if self.collided:
-            self.image = self.collision_image
-        else:
-            if not self.jumping and not self.crouching:
-                self._animate_through(sprites_list=self.trex_walking_sprites)
-            elif self.jumping:
-                self._jump()
-            elif self.crouching:
-                self.jump_count = self.settings.jump_count
-                self._animate_through(sprites_list=self.trex_crouching_sprites)
-            collision_fun
+        if not self.jumping and not self.crouching:
+            self._animate_through(sprites_list=self.trex_walking_sprites)
+        elif self.jumping:
+            self._jump()
+        elif self.crouching:
+            self.jump_count = self.settings.jump_count
+            self._animate_through(sprites_list=self.trex_crouching_sprites)
 
     def _set_y(self):
         if not self.crouching and not self.jumping:
@@ -90,6 +86,7 @@ class TRex(pygame.sprite.Sprite):
         self.collided = True
         if self.crouching:
             self.rect.y = self.y - self.rect.height * 0.5
+        self.image = self.collision_image
 
     def reset(self):
         self.jump_count = self.settings.jump_count

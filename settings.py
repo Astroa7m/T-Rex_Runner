@@ -12,4 +12,4 @@ class Settings:
         self.bird_velocity = 8
         self.jump_count = 14
         self.gravity = 0.8
-        self.fps = 60
+        self.fps = 25
