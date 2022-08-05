@@ -1,7 +1,8 @@
 class Settings:
     def __init__(self):
         self.screen_dimen = (1000, 500)
-        self.screen_background = (247, 247, 247)
+        self.screen_background_color = (5, 11, 7)
+        self.text_color = (141, 203, 159)
         self.ground_velocity = 13
         self.character_animation_velocity = 0.2
         self.bird_animation_velocity = 0.08

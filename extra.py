@@ -4,15 +4,17 @@ import pygame
 class Score:
 
     def __init__(self, t_game):
+        self.screen = t_game.screen
+        self.screen_rect = self.screen.get_rect()
+        self.settings = t_game.settings
         self.font = pygame.font.Font("assets/font/PressStart2P-Regular.ttf", 25)
         self.fetch_high_score()
         self.current_score = 0000
         self.score_text = f"HI {self.high_score} 00000"
-        self.text_color = (83, 83, 83)
+        self.text_color = self.settings.text_color
         self.image = self.font.render(self.score_text, True, self.text_color)
         self.rect = self.image.get_rect()
-        self.screen = t_game.screen
-        self.screen_rect = self.screen.get_rect()
+
         self._set_location()
 
     def update_score(self, deci):
@@ -62,12 +64,13 @@ class Score:
 
 class Text:
     def __init__(self, t_game, text):
-        self.font = pygame.font.Font("assets/font/PressStart2P-Regular.ttf", 30)
-        self.text_color = (83, 83, 83)
-        self.image = self.font.render(text.upper(), True, self.text_color)
-        self.rect = self.image.get_rect()
         self.screen = t_game.screen
         self.screen_rect = self.screen.get_rect()
+        self.settings = t_game.settings
+        self.font = pygame.font.Font("assets/font/PressStart2P-Regular.ttf", 30)
+        self.text_color = self.settings.text_color
+        self.image = self.font.render(text.upper(), True, self.text_color)
+        self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center
 
     def blit(self, x, y):

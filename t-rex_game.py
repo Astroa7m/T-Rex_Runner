@@ -23,6 +23,7 @@ class TRexRunner:
         pygame.display.set_icon(game_icon)
         self.clock = pygame.time.Clock()
         self.start_time = pygame.time.get_ticks()
+        self.started = False
         # scoring
         self.score = Score(self)
         # play again button
@@ -51,7 +52,7 @@ class TRexRunner:
     def start_game(self):
         while True:
             if not self.trex.collided:
-                self.screen.fill(self.settings.screen_background)
+                self.screen.fill(self.settings.screen_background_color)
                 self._draw_sprites()
             else:
                 self._show_game_over_text_and_play_again()
@@ -94,7 +95,8 @@ class TRexRunner:
         self.cloud_group.draw(self.screen)
         self.cactus_group.draw(self.screen)
         self.bird_group.draw(self.screen)
-        self._update_sprites()
+        if self.started:
+            self._update_sprites()
 
     def _update_sprites(self):
         # getting current time to show/update some sprites
@@ -209,18 +211,20 @@ class TRexRunner:
                 sys.exit()
                 # todo modify this when starting the game
                 # todo space or up to start the game and so on
-            elif event.type == pygame.KEYDOWN and not self.trex.collided:
+            elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
+                    self.started = True
                     self.trex.jumping = True
                     self.trex.crouching = False
                 if event.key == pygame.K_DOWN:
                     self.trex.jumping = False
                     self.trex.crouching = True
-            elif event.type == pygame.KEYUP and not self.trex.collided:
+            elif event.type == pygame.KEYUP:
                 self.trex.crouching = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
-                if self.trex.collided and self.button.rect.collidepoint(mouse_pos):
+                retry_clicked = self.button.rect.collidepoint(mouse_pos)
+                if self.trex.collided and retry_clicked:
                     self._reset()
 
     def _check_collisions(self):

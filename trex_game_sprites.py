@@ -18,7 +18,7 @@ class TRex(pygame.sprite.Sprite):
 
         # setting current image to start animating with walking images
         self.current_sprite_index = 0
-        self.image = self.trex_walking_sprites[self.current_sprite_index]
+        self.image = self.jump_image
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
         self.rect.center = (self.rect.width, self.rect.height)
@@ -27,7 +27,6 @@ class TRex(pygame.sprite.Sprite):
         self.settings = t_game.settings
         self.screen = t_game.screen
         self.screen_rect = self.screen.get_rect()
-
         # trex attributes
         self.jump_count = self.settings.jump_count
         self.jumping = False
