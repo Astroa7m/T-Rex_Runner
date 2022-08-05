@@ -12,6 +12,7 @@ class TRexRunner:
 
     def __init__(self):
         """Initializing the T-Rex game class and most of its dependencies"""
+        self.addition = 0
         self.settings = Settings()
 
         # pygame initialization logic
@@ -22,8 +23,9 @@ class TRexRunner:
         game_icon = pygame.image.load("assets/t-rex/t-rex-7.png")
         pygame.display.set_icon(game_icon)
         self.clock = pygame.time.Clock()
-        self.start_time = pygame.time.get_ticks()
         self.started = False
+        self.show_press_any_key_to_start = True
+        self.start_text = Text(self, "p r e s s  a n y  k e y  t o  s t a r t")
         # scoring
         self.score = Score(self)
         # play again button
@@ -55,6 +57,7 @@ class TRexRunner:
         while True:
             if not self.trex.collided:
                 self.screen.fill(self.settings.screen_background_color)
+                self._show_press_any_key_to_start_text()
                 self._draw_sprites()
             else:
                 self._show_game_over_text_and_play_again()
@@ -107,21 +110,21 @@ class TRexRunner:
     def _update_sprites(self):
         # getting current time to show/update some sprites
         current_time = pygame.time.get_ticks()
-        current_time_int_deci = int((current_time - self.start_time) * 0.01)
+        self.current_time_int_deci = int((current_time - self.start_time) * 0.01)
         # updating score
-        self.score.update_score(current_time_int_deci)
+        self.score.update_score(self.current_time_int_deci + self.addition)
         # showing only birds after 450 deciseconds
-        show_bird = current_time_int_deci > 450
+        show_bird = self.current_time_int_deci > 450
         # starting show cacti after 40 deciseconds of starting the game
-        forty_deci_passed = current_time_int_deci > 40
+        forty_deci_passed = self.current_time_int_deci > 40
         show_cacti = forty_deci_passed and not self.cacti_count
         # starting creating stars after 600 deciseconds and if the list is there are no stars
         # we also randomize the creation of the stars by only start creating them if the deci time
         # is divisible by 1.5, so we create them at deci time 600, 900, etc.
-        should_create_stars = (current_time_int_deci // 100) % 1.5 == 0 and not self.star_group.sprites()
-        six_hundred_deci_passed = current_time_int_deci > 600
+        should_create_stars = (self.current_time_int_deci // 100) % 1.5 == 0 and not self.star_group.sprites()
+        six_hundred_deci_passed = self.current_time_int_deci > 600
         # we are gonna show the moon after 850 deciseonds
-        show_moon = current_time_int_deci > 850 and current_time_int_deci % 300 == 0
+        show_moon = self.current_time_int_deci > 850 and self.current_time_int_deci % 300 == 0
         # we are gonna use this variable to decide whether to show cactus or a bird
         # where 0 = show cactus and 1 a bird
         # it will start with zero and once we show birds we gonna generate it randomly
@@ -222,7 +225,9 @@ class TRexRunner:
             if event.type == pygame.QUIT:
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
-                #todo press any key to start
+                if self.show_press_any_key_to_start:
+                    self.start_time = pygame.time.get_ticks()
+                self.show_press_any_key_to_start = False
                 self.started = True
                 if event.key == pygame.K_UP:
                     self.trex.jumping = True
@@ -243,17 +248,19 @@ class TRexRunner:
     def _check_collisions(self):
         cactus_hit = pygame.sprite.spritecollide(self.trex, self.cactus_group, True, pygame.sprite.collide_mask)
         bird_hits = pygame.sprite.spritecollide(self.trex, self.bird_group, True, pygame.sprite.collide_mask)
-        #todo increase the score if player hits cactus by 20
-        #todo increase the score if player hits bird by 80
-        #todo increase the score size when it increases
-        #todo increase the score size when it hits a number divisible by 100
-        bullet_bird_hit = pygame.sprite.groupcollide(self.bullet_group, self.bird_group, True, True, pygame.sprite.collide_mask)
-        bullet_cactus_hit = pygame.sprite.groupcollide(self.bullet_group, self.cactus_group, True, True, pygame.sprite.collide_mask)
+        bullet_hit_bird = pygame.sprite.groupcollide(self.bullet_group, self.bird_group, True, True,
+                                                     pygame.sprite.collide_mask)
+        if bullet_hit_bird:
+            self.addition += 20
+        bullet_hit_cactus = pygame.sprite.groupcollide(self.bullet_group, self.cactus_group, True, True,
+                                                       pygame.sprite.collide_mask)
+        if bullet_hit_cactus:
+            self.addition += 40
         if bird_hits or cactus_hit:
             self.trex.collide()
 
     def _show_game_over_text_and_play_again(self):
-        game_over = Text(self, "G a m e  O v e r")
+        game_over = Text(self, "G a m e  O v e r", 30)
         x = self.screen_rect.centerx
         y1 = self.screen_rect.height / 3
         y2 = self.screen_rect.height - y1
@@ -265,15 +272,21 @@ class TRexRunner:
         self.score.fetch_high_score()
         self._drop_enemy_sprites()
         self.trex.reset()
+        self.settings.reset_difficulty()
 
     def _drop_enemy_sprites(self):
         self.cactus_group.empty()
         self.bird_group.empty()
 
     def _fire_bullet(self):
-        bullet = Bullet(self)
-        self.bullet_group.add(bullet)
+        if self.settings.bullet_count > len(self.bullet_group.sprites()):
+            bullet = Bullet(self)
+            self.bullet_group.add(bullet)
 
+    def _show_press_any_key_to_start_text(self):
+        if self.show_press_any_key_to_start:
+            self.start_text.blit(self.screen_rect.width / 2, self.screen_rect.height / 2)
+            self.start_text.update()
 
 
 if __name__ == '__main__':
