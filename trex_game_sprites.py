@@ -217,9 +217,11 @@ class Bird(pygame.sprite.Sprite):
         index = random.randrange(0, len(list_of_ys))
         self.y = 0
         if index == 0:
-            self.rect.top = list_of_ys[0] - self.rect.height / 2
+            self.rect.top = list_of_ys[0]
         elif index == 1:
             self.rect.bottom = list_of_ys[1]
+        else:
+            self.rect.top = list_of_ys[2]
 
         self.rect.x = self.screen_rect.width
         self.mask = pygame.mask.from_surface(self.image)
@@ -262,3 +264,29 @@ class Moon(pygame.sprite.Sprite):
     def _check_kill(self):
         if self.rect.right < 0:
             self.kill()
+
+
+class Bullet(pygame.sprite.Sprite):
+
+    def __init__(self, t_game):
+        super().__init__()
+        self.screen = t_game.screen
+        self.screen_rect = t_game.screen.get_rect()
+        self.settings = t_game.settings
+        self.left = t_game.trex.rect.right
+        self.top = t_game.trex.rect.top + t_game.trex.rect.height * 0.4361
+        self.image = pygame.surface.Surface((self.settings.bullet_width, self.settings.bullet_height))
+        self.image.fill(self.settings.items_color)
+        self.rect = self.image.get_rect()
+        self.rect.top = self.top
+        self.rect.left = self.left
+
+    def update(self):
+        self.left += self.settings.bullet_speed
+        self.rect.center = (self.left, self.top)
+        self._check_kill()
+
+    def _check_kill(self):
+        if self.rect.left > self.screen_rect.width:
+            self.kill()
+

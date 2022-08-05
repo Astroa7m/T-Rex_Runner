@@ -11,7 +11,7 @@ class Score:
         self.fetch_high_score()
         self.current_score = 0000
         self.score_text = f"HI {self.high_score} 00000"
-        self.text_color = self.settings.text_color
+        self.text_color = self.settings.items_color
         self.image = self.font.render(self.score_text, True, self.text_color)
         self.rect = self.image.get_rect()
 
@@ -68,7 +68,7 @@ class Text:
         self.screen_rect = self.screen.get_rect()
         self.settings = t_game.settings
         self.font = pygame.font.Font("assets/font/PressStart2P-Regular.ttf", 30)
-        self.text_color = self.settings.text_color
+        self.text_color = self.settings.items_color
         self.image = self.font.render(text.upper(), True, self.text_color)
         self.rect = self.image.get_rect()
         self.rect.center = self.screen_rect.center

@@ -48,6 +48,8 @@ class TRexRunner:
         self._init_birds()
         # moon
         self._init_moon()
+        # bullets
+        self._init_bullet()
 
     def start_game(self):
         while True:
@@ -88,6 +90,9 @@ class TRexRunner:
     def _init_moon(self):
         self.moon_group = pygame.sprite.Group()
 
+    def _init_bullet(self):
+        self.bullet_group = pygame.sprite.Group()
+
     def _draw_sprites(self):
         self.ground_group.draw(self.screen)
         self.moon_group.draw(self.screen)
@@ -95,6 +100,7 @@ class TRexRunner:
         self.cloud_group.draw(self.screen)
         self.cactus_group.draw(self.screen)
         self.bird_group.draw(self.screen)
+        self.bullet_group.draw(self.screen)
         if self.started:
             self._update_sprites()
 
@@ -112,7 +118,7 @@ class TRexRunner:
         # starting creating stars after 600 deciseconds and if the list is there are no stars
         # we also randomize the creation of the stars by only start creating them if the deci time
         # is divisible by 1.5, so we create them at deci time 600, 900, etc.
-        should_create = (current_time_int_deci // 100) % 1.5 == 0 and not self.star_group.sprites()
+        should_create_stars = (current_time_int_deci // 100) % 1.5 == 0 and not self.star_group.sprites()
         six_hundred_deci_passed = current_time_int_deci > 600
         # we are gonna show the moon after 850 deciseonds
         show_moon = current_time_int_deci > 850 and current_time_int_deci % 300 == 0
@@ -143,7 +149,7 @@ class TRexRunner:
         # Update star
         for star in self.star_group.sprites():
             star.update()
-        if six_hundred_deci_passed and should_create:
+        if six_hundred_deci_passed and should_create_stars:
             stars_count = random.randint(1, 3)
             for i in range(stars_count):
                 star = Star(self, i * 250)
@@ -156,9 +162,11 @@ class TRexRunner:
                 self._create_cacti()
         elif sprite_type == 1 and not self.cactus_group.sprites():
             if not self.bird_group.sprites():
-                top_of_trex = self.trex.rect.top
+                top_of_bird = self.ground_group.sprites()[0].rect.y - self.trex.rect.height - \
+                              self.ground_group.sprites()[0].rect.height * 0.75
                 bottom_of_ground = self.ground_group.sprites()[0].rect.bottom
-                list_of_ys = [top_of_trex, bottom_of_ground]
+                top_of_trex = self.trex.rect.top
+                list_of_ys = [top_of_bird, bottom_of_ground, top_of_trex]
                 bird = Bird(self, list_of_ys)
                 self.bird_group.add(bird)
 
@@ -175,6 +183,10 @@ class TRexRunner:
         if show_moon and not self.moon_group.sprites():
             moon = Moon(self)
             self.moon_group.add(moon)
+
+        # Update bullets
+        for bullet in self.bullet_group.sprites():
+            bullet.update()
 
     def _create_ground(self, right=None):
         ground = Ground(self)
@@ -209,16 +221,17 @@ class TRexRunner:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
-                # todo modify this when starting the game
-                # todo space or up to start the game and so on
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
-                    self.started = True
+                #todo press any key to start
+                self.started = True
+                if event.key == pygame.K_UP:
                     self.trex.jumping = True
                     self.trex.crouching = False
-                if event.key == pygame.K_DOWN:
+                elif event.key == pygame.K_DOWN:
                     self.trex.jumping = False
                     self.trex.crouching = True
+                if event.key == pygame.K_SPACE:
+                    self._fire_bullet()
             elif event.type == pygame.KEYUP:
                 self.trex.crouching = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -230,6 +243,12 @@ class TRexRunner:
     def _check_collisions(self):
         cactus_hit = pygame.sprite.spritecollide(self.trex, self.cactus_group, True, pygame.sprite.collide_mask)
         bird_hits = pygame.sprite.spritecollide(self.trex, self.bird_group, True, pygame.sprite.collide_mask)
+        #todo increase the score if player hits cactus by 20
+        #todo increase the score if player hits bird by 80
+        #todo increase the score size when it increases
+        #todo increase the score size when it hits a number divisible by 100
+        bullet_bird_hit = pygame.sprite.groupcollide(self.bullet_group, self.bird_group, True, True, pygame.sprite.collide_mask)
+        bullet_cactus_hit = pygame.sprite.groupcollide(self.bullet_group, self.cactus_group, True, True, pygame.sprite.collide_mask)
         if bird_hits or cactus_hit:
             self.trex.collide()
 
@@ -250,6 +269,11 @@ class TRexRunner:
     def _drop_enemy_sprites(self):
         self.cactus_group.empty()
         self.bird_group.empty()
+
+    def _fire_bullet(self):
+        bullet = Bullet(self)
+        self.bullet_group.add(bullet)
+
 
 
 if __name__ == '__main__':
