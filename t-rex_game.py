@@ -22,6 +22,11 @@ class TRexRunner:
         pygame.display.set_caption("T-Rex Runner")
         game_icon = pygame.image.load("assets/t-rex/t-rex-7.png")
         pygame.display.set_icon(game_icon)
+        self.start_jump_sound = pygame.mixer.Sound("assets/sounds/start_or_jump.wav")
+        self.crash_sound = pygame.mixer.Sound("assets/sounds/crash.wav")
+        self.milestone_sound = pygame.mixer.Sound("assets/sounds/milestone.wav")
+        self.shoot_sound = pygame.mixer.Sound("assets/sounds/shoot.wav")
+        self.explosion_sound = pygame.mixer.Sound("assets/sounds/bomb.wav")
         self.clock = pygame.time.Clock()
         self.started = False
         self.show_press_any_key_to_start = True
@@ -112,7 +117,7 @@ class TRexRunner:
         current_time = pygame.time.get_ticks()
         self.current_time_int_deci = int((current_time - self.start_time) * 0.01)
         # updating score
-        self.score.update_score(self.current_time_int_deci + self.addition)
+        self.score.update_score(self.current_time_int_deci + self.addition, lambda: self.milestone_sound.play())
         # showing only birds after 450 deciseconds
         show_bird = self.current_time_int_deci > 450
         # starting show cacti after 40 deciseconds of starting the game
@@ -227,9 +232,13 @@ class TRexRunner:
             elif event.type == pygame.KEYDOWN:
                 if self.show_press_any_key_to_start:
                     self.start_time = pygame.time.get_ticks()
-                self.show_press_any_key_to_start = False
+                if self.show_press_any_key_to_start:
+                    self.start_jump_sound.play()
+                    self.show_press_any_key_to_start = False
                 self.started = True
                 if event.key == pygame.K_UP:
+                    if not self.trex.jumping:
+                        self.start_jump_sound.play()
                     self.trex.jumping = True
                     self.trex.crouching = False
                 elif event.key == pygame.K_DOWN:
@@ -246,17 +255,37 @@ class TRexRunner:
                     self._reset()
 
     def _check_collisions(self):
-        cactus_hit = pygame.sprite.spritecollide(self.trex, self.cactus_group, True, pygame.sprite.collide_mask)
-        bird_hits = pygame.sprite.spritecollide(self.trex, self.bird_group, True, pygame.sprite.collide_mask)
-        bullet_hit_bird = pygame.sprite.groupcollide(self.bullet_group, self.bird_group, True, True,
-                                                     pygame.sprite.collide_mask)
+        cactus_hit = pygame.sprite.spritecollide(
+            self.trex,
+            self.cactus_group,
+            True,
+            pygame.sprite.collide_mask)
+        bird_hits = pygame.sprite.spritecollide(
+            self.trex,
+            self.bird_group,
+            True,
+            pygame.sprite.collide_mask)
+        bullet_hit_bird = pygame.sprite.groupcollide(
+            self.bullet_group,
+            self.bird_group,
+            True,
+            True,
+            pygame.sprite.collide_mask)
         if bullet_hit_bird:
-            self.addition += 20
-        bullet_hit_cactus = pygame.sprite.groupcollide(self.bullet_group, self.cactus_group, True, True,
-                                                       pygame.sprite.collide_mask)
+            self.addition += 5
+            self.explosion_sound.play()
+        bullet_hit_cactus = pygame.sprite.groupcollide(
+            self.bullet_group,
+            self.cactus_group,
+            True,
+            True,
+            pygame.sprite.collide_mask)
+
         if bullet_hit_cactus:
-            self.addition += 40
+            self.addition += 10
+            self.explosion_sound.play()
         if bird_hits or cactus_hit:
+            self.crash_sound.play()
             self.trex.collide()
 
     def _show_game_over_text_and_play_again(self):
@@ -268,7 +297,9 @@ class TRexRunner:
         self.button.blit(x, y2)
 
     def _reset(self):
+        self.start_jump_sound.play()
         self.start_time = pygame.time.get_ticks()
+        self.addition = 0
         self.score.fetch_high_score()
         self._drop_enemy_sprites()
         self.trex.reset()
@@ -282,6 +313,7 @@ class TRexRunner:
         if self.settings.bullet_count > len(self.bullet_group.sprites()):
             bullet = Bullet(self)
             self.bullet_group.add(bullet)
+            self.shoot_sound.play()
 
     def _show_press_any_key_to_start_text(self):
         if self.show_press_any_key_to_start:

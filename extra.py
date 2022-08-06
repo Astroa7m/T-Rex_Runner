@@ -17,13 +17,18 @@ class Score:
         self.image = self.font.render(self.score_text, True, self.text_color)
         self.rect = self.image.get_rect()
         self.current_mile_stone = 0
-        self.expanded = False
+        self.should_not_play_sound = False
         self._set_location()
 
-    def update_score(self, deci):
-        if deci in range(100, 1_000_000, 100):
+    def update_score(self, deci, play_milestone_sound_callback):
+        if deci >= 100 and deci % 100 == 0:
             self.current_mile_stone = deci
+            if not self.should_not_play_sound:
+                play_milestone_sound_callback()
+                self.should_not_play_sound = True
             self.settings.increase_difficulty()
+        else:
+            self.should_not_play_sound = False
         if deci > 100 and deci in range(self.current_mile_stone, self.current_mile_stone + 10):
             self.text_color = (255, 255, 0)
         else:
