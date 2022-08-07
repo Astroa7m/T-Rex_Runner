@@ -1,8 +1,9 @@
+import random
 import sys
 
 import pygame.time
 
-from extra import Score, Text, Button
+from extra import Score, Text, Button, BulletIndicator
 from settings import Settings
 from trex_game_sprites import *
 
@@ -57,6 +58,8 @@ class TRexRunner:
         self._init_moon()
         # bullets
         self._init_bullet()
+        # indicator
+        self.bullet_loading_indicator = BulletIndicator(self)
 
     def start_game(self):
         while True:
@@ -64,6 +67,7 @@ class TRexRunner:
                 self.screen.fill(self.settings.screen_background_color)
                 self._show_press_any_key_to_start_text()
                 self._draw_sprites()
+                self._create_indicator()
             else:
                 self._show_game_over_text_and_play_again()
             self.trex_group.draw(self.screen)
@@ -310,7 +314,7 @@ class TRexRunner:
         self.bird_group.empty()
 
     def _fire_bullet(self):
-        if self.settings.bullet_count > len(self.bullet_group.sprites()):
+        if self.settings.bullet_count > len(self.bullet_group.sprites()) and not self.trex.collided:
             bullet = Bullet(self)
             self.bullet_group.add(bullet)
             self.shoot_sound.play()
@@ -319,6 +323,12 @@ class TRexRunner:
         if self.show_press_any_key_to_start:
             self.start_text.blit(self.screen_rect.width / 2, self.screen_rect.height / 2)
             self.start_text.update()
+
+    def _create_indicator(self):
+        if len(self.bullet_group.sprites()) > 1:
+            percentage = 1 - ((self.settings.screen_dimen[0] - self.bullet_group.sprites()[-1].rect.x) /
+                              self.settings.screen_dimen[0])
+            self.bullet_loading_indicator.update(percentage)
 
 
 if __name__ == '__main__':

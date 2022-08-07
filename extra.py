@@ -95,13 +95,13 @@ class Text:
         self.expanded = True
 
     def update(self):
-        if self.settings.text_size >= self.text_size > 10 and self.expanded:
+        if self.settings.text_size >= self.text_size > 15 and self.expanded:
             self.text_size -= int(self.text_size_animation_vel)
             self.text_size_animation_vel += 0.08
             self.font = pygame.font.Font("assets/font/PressStart2P-Regular.ttf", self.text_size)
             self.image = self.font.render(self.text.upper(), True, self.text_color)
             self.rect = self.image.get_rect()
-            if self.text_size == 10:
+            if self.text_size == 15:
                 self.text_size_animation_vel = self.settings.text_animation_velocity
                 self.expanded = not self.expanded
         else:
@@ -130,3 +130,38 @@ class Button:
     def blit(self, x, y):
         self.rect.center = (x, y)
         self.screen.blit(self.image, self.rect)
+
+
+class BulletIndicator:
+    def __init__(self, t_game):
+        super().__init__()
+        self.screen = t_game.screen
+        self.screen_rect = t_game.screen.get_rect()
+        self.settings = t_game.settings
+        ground = t_game.ground_group.sprites()[0]
+        self.rect_size = (self.settings.screen_dimen[0] / 4, self.settings.screen_dimen[1] / 24)
+        self.rect_center = (self.screen_rect.width / 2, (ground.rect.center[1] + self.screen_rect.bottom) / 2)
+        # outlined
+        self.outlined_image = pygame.surface.Surface(self.rect_size)
+        self.outlined_image_rect = self.outlined_image.get_rect()
+        self.outlined_image_rect.center = self.rect_center
+
+        # filled
+        self.filled_image = pygame.surface.Surface(self.rect_size)
+        self.filled_image_rect = self.filled_image.get_rect()
+        self.filled_image_rect.center = self.rect_center
+
+        # text
+        text_size = self.settings.text_size
+        text_color = self.settings.items_color
+        font = pygame.font.Font("assets/font/PressStart2P-Regular.ttf", text_size)
+        self.text_surface = font.render('R E L O A D I N G', True, text_color)
+        self.text_rect = self.text_surface.get_rect()
+        self.text_rect.center = (
+            self.rect_center[0], self.rect_center[1] + self.outlined_image_rect.height + self.text_rect.height / 2)
+
+    def update(self, x):
+        self.screen.blit(self.text_surface, self.text_rect)
+        pygame.draw.rect(self.screen, self.settings.items_color, self.outlined_image_rect, 3)
+        self.filled_image_rect.size = (self.outlined_image_rect.size[0] * x, self.filled_image_rect.size[1])
+        pygame.draw.rect(self.screen, self.settings.items_color, self.filled_image_rect)

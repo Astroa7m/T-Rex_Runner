@@ -10,7 +10,6 @@ class Settings:
         self.bullet_width = 15
         self.bullet_height = 3
         self.bullet_speed = 7
-        self.bullet_count = 2
         self.text_size = 20
         self.jump_count = 14
         self.gravity = 0.8
@@ -26,6 +25,7 @@ class Settings:
         self.star_velocity += self.star_velocity * self.difficulty_scale
         self.moon_velocity += self.moon_velocity * self.difficulty_scale
         self.bird_velocity += self.bird_velocity * self.difficulty_scale
+        self.bullet_count += self.bullet_count * self.difficulty_scale
 
     def reset_difficulty(self):
         self.cloud_velocity = 1
@@ -33,3 +33,5 @@ class Settings:
         self.star_velocity = 0.9
         self.moon_velocity = 0.8
         self.bird_velocity = 8
+        self.bullet_count = 2
+

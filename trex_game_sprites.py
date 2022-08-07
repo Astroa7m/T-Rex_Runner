@@ -289,4 +289,3 @@ class Bullet(pygame.sprite.Sprite):
     def _check_kill(self):
         if self.rect.left > self.screen_rect.width:
             self.kill()
-
