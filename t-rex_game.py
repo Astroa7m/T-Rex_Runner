@@ -1,9 +1,8 @@
-import random
 import sys
 
 import pygame.time
 
-from extra import Score, Text, Button, BulletIndicator
+from extra import *
 from settings import Settings
 from trex_game_sprites import *
 
@@ -31,9 +30,11 @@ class TRexRunner:
         self.clock = pygame.time.Clock()
         self.started = False
         self.show_press_any_key_to_start = True
-        self.start_text = Text(self, "p r e s s  a n y  k e y  t o  s t a r t")
+        self.start_text = StartText(self, "press any key to start")
         # scoring
         self.score = Score(self)
+        # bullets text indicator
+        self.bullet_text = BulletsCount(self)
         # play again button
         self.button = Button(self)
         # init sprites
@@ -58,8 +59,8 @@ class TRexRunner:
         self._init_moon()
         # bullets
         self._init_bullet()
-        # indicator
-        self.bullet_loading_indicator = BulletIndicator(self)
+        # bullets loading indicator
+        self.bullet_loading_indicator = BulletLoadingIndicator(self)
 
     def start_game(self):
         while True:
@@ -68,6 +69,7 @@ class TRexRunner:
                 self._show_press_any_key_to_start_text()
                 self._draw_sprites()
                 self._create_indicator()
+                self.bullet_text.update(self.get_bullet_count())
             else:
                 self._show_game_over_text_and_play_again()
             self.trex_group.draw(self.screen)
@@ -276,7 +278,7 @@ class TRexRunner:
             True,
             pygame.sprite.collide_mask)
         if bullet_hit_bird:
-            self.addition += 5
+            self.addition += 8
             self.explosion_sound.play()
         bullet_hit_cactus = pygame.sprite.groupcollide(
             self.bullet_group,
@@ -286,14 +288,14 @@ class TRexRunner:
             pygame.sprite.collide_mask)
 
         if bullet_hit_cactus:
-            self.addition += 10
+            self.addition += 4
             self.explosion_sound.play()
         if bird_hits or cactus_hit:
             self.crash_sound.play()
             self.trex.collide()
 
     def _show_game_over_text_and_play_again(self):
-        game_over = Text(self, "G a m e  O v e r", 30)
+        game_over = StartText(self, "game over", 30)
         x = self.screen_rect.centerx
         y1 = self.screen_rect.height / 3
         y2 = self.screen_rect.height - y1
@@ -305,13 +307,16 @@ class TRexRunner:
         self.start_time = pygame.time.get_ticks()
         self.addition = 0
         self.score.fetch_high_score()
-        self._drop_enemy_sprites()
+        self._drop_sprites()
         self.trex.reset()
         self.settings.reset_difficulty()
 
-    def _drop_enemy_sprites(self):
+    def _drop_sprites(self):
         self.cactus_group.empty()
         self.bird_group.empty()
+        self.bullet_group.empty()
+        self.star_group.empty()
+        self.moon_group.empty()
 
     def _fire_bullet(self):
         if self.settings.bullet_count > len(self.bullet_group.sprites()) and not self.trex.collided:
@@ -325,10 +330,13 @@ class TRexRunner:
             self.start_text.update()
 
     def _create_indicator(self):
-        if len(self.bullet_group.sprites()) > 1:
+        if self.get_bullet_count() == 0:
             percentage = 1 - ((self.settings.screen_dimen[0] - self.bullet_group.sprites()[-1].rect.x) /
                               self.settings.screen_dimen[0])
             self.bullet_loading_indicator.update(percentage)
+
+    def get_bullet_count(self):
+        return abs(len(self.bullet_group.sprites()) - self.settings.bullet_count)
 
 
 if __name__ == '__main__':

@@ -1,3 +1,6 @@
+import random
+
+
 class Settings:
     def __init__(self):
         # static settings
@@ -9,12 +12,12 @@ class Settings:
         self.bird_animation_velocity = 0.08
         self.bullet_width = 15
         self.bullet_height = 3
-        self.bullet_speed = 7
+        self.bullet_speed = 4
         self.text_size = 20
         self.jump_count = 14
         self.gravity = 0.8
         self.fps = 25
-        self.difficulty_scale = 0.01
+        self.difficulty_scale = 0.05
 
         # nonstatic settings
         self.reset_difficulty()
@@ -25,8 +28,15 @@ class Settings:
         self.star_velocity += self.star_velocity * self.difficulty_scale
         self.moon_velocity += self.moon_velocity * self.difficulty_scale
         self.bird_velocity += self.bird_velocity * self.difficulty_scale
-        self.bullet_count += self.bullet_count * self.difficulty_scale
-
+        self.bullet_count += random.randint(0, 1)
+        print(f"""
+cloud_velocity  {self.cloud_velocity}
+ground_velocity  {self.ground_velocity}
+star_velocity {self.star_velocity}
+moon_velocity {self.moon_velocity}
+bird_velocity {self.bird_velocity}
+bullet_speed {self.bullet_speed}
+""")
     def reset_difficulty(self):
         self.cloud_velocity = 1
         self.ground_velocity = 13

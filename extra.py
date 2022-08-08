@@ -1,32 +1,44 @@
 import pygame
 
 
-class Score:
-
-    def __init__(self, t_game):
+class Text:
+    def __init__(self, t_game, text=None, text_size=None):
         self.screen = t_game.screen
         self.screen_rect = self.screen.get_rect()
         self.settings = t_game.settings
-        self.text_size = self.settings.text_size
         self.text_size_animation_vel = self.settings.text_animation_velocity
+        self.text_size = self.settings.text_size if text_size is None else text_size
         self.font = pygame.font.Font("assets/font/PressStart2P-Regular.ttf", self.text_size)
-        self.fetch_high_score()
-        self.current_score = 0
-        self.score_text = f"HI {self.high_score} 00000"
         self.text_color = self.settings.items_color
-        self.image = self.font.render(self.score_text, True, self.text_color)
+        self.text = text
+        self.image = self.font.render(self.text, True, self.text_color)
         self.rect = self.image.get_rect()
+
+    def update(self, *args):
+        pass
+
+    def blit(self, *args):
+        self.screen.blit(self.image, self.rect)
+
+
+class Score(Text):
+
+    def __init__(self, t_game):
+        self.fetch_high_score()
+        super().__init__(t_game, text=f"HI {self.high_score} 00000")
+        self.current_score = 0
         self.current_mile_stone = 0
         self.should_not_play_sound = False
         self._set_location()
 
     def update_score(self, deci, play_milestone_sound_callback):
-        if deci >= 100 and deci % 100 == 0:
+        # checking if we passed 100 points
+        if deci >= 100 and (deci % 100 == 0 or (deci - self.current_mile_stone) >= 100):
             self.current_mile_stone = deci
             if not self.should_not_play_sound:
                 play_milestone_sound_callback()
                 self.should_not_play_sound = True
-            self.settings.increase_difficulty()
+                self.settings.increase_difficulty()
         else:
             self.should_not_play_sound = False
         if deci > 100 and deci in range(self.current_mile_stone, self.current_mile_stone + 10):
@@ -38,7 +50,7 @@ class Score:
         self._set_high_score()
         self.image = self.font.render(self.score_text, True, self.text_color)
         self._set_location()
-        self.screen.blit(self.image, self.rect)
+        self.blit()
 
     def fetch_high_score(self):
         file = None
@@ -77,18 +89,9 @@ class Score:
         self.rect.top = self.screen_rect.top + 16
 
 
-class Text:
+class StartText(Text):
     def __init__(self, t_game, text, text_size=None):
-        self.screen = t_game.screen
-        self.screen_rect = self.screen.get_rect()
-        self.settings = t_game.settings
-        self.text_size = self.settings.text_size if text_size is None else text_size
-        self.text_size_animation_vel = self.settings.text_animation_velocity
-        self.font = pygame.font.Font("assets/font/PressStart2P-Regular.ttf", self.text_size)
-        self.text_color = self.settings.items_color
-        self.text = text
-        self.image = self.font.render(self.text.upper(), True, self.text_color)
-        self.rect = self.image.get_rect()
+        super().__init__(t_game, text.replace("", " ").upper().lstrip(), text_size)
         self.rect.center = self.screen_rect.center
         self.height = self.rect.height
         self.width = self.rect.width
@@ -132,7 +135,7 @@ class Button:
         self.screen.blit(self.image, self.rect)
 
 
-class BulletIndicator:
+class BulletLoadingIndicator:
     def __init__(self, t_game):
         super().__init__()
         self.screen = t_game.screen
@@ -155,7 +158,8 @@ class BulletIndicator:
         text_size = self.settings.text_size
         text_color = self.settings.items_color
         font = pygame.font.Font("assets/font/PressStart2P-Regular.ttf", text_size)
-        self.text_surface = font.render('R E L O A D I N G', True, text_color)
+        text = "reloading".replace("", " ").upper().lstrip()
+        self.text_surface = font.render(text, True, text_color)
         self.text_rect = self.text_surface.get_rect()
         self.text_rect.center = (
             self.rect_center[0], self.rect_center[1] + self.outlined_image_rect.height + self.text_rect.height / 2)
@@ -165,3 +169,15 @@ class BulletIndicator:
         pygame.draw.rect(self.screen, self.settings.items_color, self.outlined_image_rect, 3)
         self.filled_image_rect.size = (self.outlined_image_rect.size[0] * x, self.filled_image_rect.size[1])
         pygame.draw.rect(self.screen, self.settings.items_color, self.filled_image_rect)
+
+
+class BulletsCount(Text):
+    def __init__(self, t_game, text_size=None):
+        text = "bullets:".replace("", " ").upper().lstrip()
+        super().__init__(t_game, text, text_size)
+        self.rect.left = self.screen_rect.left + 16
+        self.rect.top = self.screen_rect.top + 16
+
+    def update(self, bullet_count):
+        self.image = self.font.render(f"{self.text} {bullet_count}", True, self.text_color)
+        self.blit()
