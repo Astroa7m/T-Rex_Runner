@@ -26,7 +26,8 @@ class TRexRunner:
         self.crash_sound = pygame.mixer.Sound("assets/sounds/crash.wav")
         self.milestone_sound = pygame.mixer.Sound("assets/sounds/milestone.wav")
         self.shoot_sound = pygame.mixer.Sound("assets/sounds/shoot.wav")
-        self.explosion_sound = pygame.mixer.Sound("assets/sounds/bomb.wav")
+        self.first_shot_sound = pygame.mixer.Sound("assets/sounds/shot_hit_1.wav")
+        self.second_shot_sound = pygame.mixer.Sound("assets/sounds/shot_hit_2.wav")
         self.clock = pygame.time.Clock()
         self.started = False
         self.show_press_any_key_to_start = True
@@ -125,7 +126,7 @@ class TRexRunner:
         # updating score
         self.score.update_score(self.current_time_int_deci + self.addition, lambda: self.milestone_sound.play())
         # showing only birds after 450 deciseconds
-        show_bird = self.current_time_int_deci > 450
+        show_bird = self.current_time_int_deci > 0
         # starting show cacti after 40 deciseconds of starting the game
         forty_deci_passed = self.current_time_int_deci > 40
         show_cacti = forty_deci_passed and not self.cacti_count
@@ -275,21 +276,35 @@ class TRexRunner:
             self.bullet_group,
             self.bird_group,
             True,
-            True,
+            False,
             pygame.sprite.collide_mask)
-        if bullet_hit_bird:
-            self.addition += 8
-            self.explosion_sound.play()
+
+        for bullet in bullet_hit_bird:
+            for bird in bullet_hit_bird[bullet]:
+                if bird.current_list == bird.damaged_bird_sprites:
+                    bird.kill()
+                    self.addition += 8
+                    self.second_shot_sound.play()
+                    return
+                bird.set_damaged()
+                self.first_shot_sound.play()
+
         bullet_hit_cactus = pygame.sprite.groupcollide(
             self.bullet_group,
             self.cactus_group,
             True,
-            True,
+            False,
             pygame.sprite.collide_mask)
+        for bullet in bullet_hit_cactus:
+            for cactus in bullet_hit_cactus[bullet]:
+                if cactus.image == cactus.damaged_image:
+                    cactus.kill()
+                    self.addition += 4
+                    self.second_shot_sound.play()
+                    return
+                cactus.set_damaged()
+                self.first_shot_sound.play()
 
-        if bullet_hit_cactus:
-            self.addition += 4
-            self.explosion_sound.play()
         if bird_hits or cactus_hit:
             self.crash_sound.play()
             self.trex.collide()

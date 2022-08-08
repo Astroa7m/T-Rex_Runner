@@ -29,14 +29,7 @@ class Settings:
         self.moon_velocity += self.moon_velocity * self.difficulty_scale
         self.bird_velocity += self.bird_velocity * self.difficulty_scale
         self.bullet_count += random.randint(0, 1)
-        print(f"""
-cloud_velocity  {self.cloud_velocity}
-ground_velocity  {self.ground_velocity}
-star_velocity {self.star_velocity}
-moon_velocity {self.moon_velocity}
-bird_velocity {self.bird_velocity}
-bullet_speed {self.bullet_speed}
-""")
+
     def reset_difficulty(self):
         self.cloud_velocity = 1
         self.ground_velocity = 13

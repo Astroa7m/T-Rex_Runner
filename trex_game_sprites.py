@@ -110,7 +110,7 @@ class Ground(pygame.sprite.Sprite):
         return self.rect.right <= self.screen_rect.right
 
     def set_left(self, right):
-        self.rect.left = right - 10
+        self.rect.left = right - 15
 
     def _check_kill(self):
         if self.rect.right <= self.screen_rect.left:
@@ -148,7 +148,9 @@ class Cactus(pygame.sprite.Sprite):
         super().__init__()
         self.id = random.randrange(13)
         cactus_file = f"assets/cactus/cactus-{self.id}.png"
+        cactus_damage_file = f"assets/cactus/cactus-{self.id}-shot.png"
         self.image = pygame.image.load(cactus_file).convert_alpha()
+        self.damaged_image = pygame.image.load(cactus_damage_file).convert_alpha()
         self.rect = self.image.get_rect()
         self.screen = t_game.screen
         self.screen_rect = self.screen.get_rect()
@@ -170,6 +172,9 @@ class Cactus(pygame.sprite.Sprite):
     def _check_kill(self):
         if self.rect.right < 0:
             self.kill()
+
+    def set_damaged(self):
+        self.image = self.damaged_image
 
 
 class Star(pygame.sprite.Sprite):
@@ -198,10 +203,11 @@ class Star(pygame.sprite.Sprite):
 class Bird(pygame.sprite.Sprite):
     def __init__(self, t_game, list_of_ys):
         super().__init__()
-        self.bird_sprites = []
-        self.bird_sprites.append(pygame.image.load("assets/bird/bird-1.png"))
-        self.bird_sprites.append(pygame.image.load("assets/bird/bird-2.png"))
+        self.bird_sprites = [pygame.image.load("assets/bird/bird-1.png"), pygame.image.load("assets/bird/bird-2.png")]
+        self.damaged_bird_sprites = [pygame.image.load("assets/bird/bird-1-shot.png"),
+                                     pygame.image.load("assets/bird/bird-2-shot.png")]
         self.current_sprite_index = 0
+        self.current_list = self.bird_sprites
         self.image = self.bird_sprites[self.current_sprite_index]
         self.rect = self.image.get_rect()
         self.screen = t_game.screen
@@ -237,9 +243,12 @@ class Bird(pygame.sprite.Sprite):
 
     def _animate_through(self):
         self.current_sprite_index += self.settings.bird_animation_velocity
-        if self.current_sprite_index >= len(self.bird_sprites):
+        if self.current_sprite_index >= len(self.current_list):
             self.current_sprite_index = 0
-        self.image = self.bird_sprites[int(self.current_sprite_index)]
+        self.image = self.current_list[int(self.current_sprite_index)]
+
+    def set_damaged(self):
+        self.current_list = self.damaged_bird_sprites
 
 
 class Moon(pygame.sprite.Sprite):
