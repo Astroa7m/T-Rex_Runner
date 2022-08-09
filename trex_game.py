@@ -148,7 +148,7 @@ class TRexRunner:
         # updating score
         self.score.update_score(self.current_time_int_deci + self.addition, lambda: self.milestone_sound.play())
         # showing only birds after 450 deciseconds
-        show_bird = self.current_time_int_deci > 0
+        show_bird = self.current_time_int_deci > 450
         # starting show cacti after 40 deciseconds from starting the game
         forty_deci_passed = self.current_time_int_deci > 40
         show_cacti = forty_deci_passed and not self.cacti_count
@@ -406,7 +406,3 @@ class TRexRunner:
         """Returns bullet count"""
         return abs(len(self.bullet_group.sprites()) - self.settings.bullet_count)
 
-
-if __name__ == '__main__':
-    game = TRexRunner()
-    game.start_game()
