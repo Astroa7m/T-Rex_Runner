@@ -2,6 +2,7 @@ import pygame
 
 
 class Text:
+    """Parent class for most text elements"""
     def __init__(self, t_game, text=None, text_size=None):
         self.screen = t_game.screen
         self.screen_rect = self.screen.get_rect()
@@ -22,7 +23,7 @@ class Text:
 
 
 class Score(Text):
-
+    """Represents and manages everything related to player's score"""
     def __init__(self, t_game):
         self.fetch_high_score()
         super().__init__(t_game, text=f"HI {self.high_score} 00000")
@@ -36,11 +37,13 @@ class Score(Text):
         if deci >= 100 and (deci % 100 == 0 or (deci - self.current_mile_stone) >= 100):
             self.current_mile_stone = deci
             if not self.should_not_play_sound:
+                # if we don't have this if condition then the following block will run multiple times
                 play_milestone_sound_callback()
                 self.should_not_play_sound = True
                 self.settings.increase_difficulty()
         else:
             self.should_not_play_sound = False
+        # changing the score color so the player notices that he/she passed new milestone
         if deci > 100 and deci in range(self.current_mile_stone, self.current_mile_stone + 10):
             self.text_color = (255, 255, 0)
         else:
@@ -53,6 +56,7 @@ class Score(Text):
         self.blit()
 
     def fetch_high_score(self):
+        """Fetching high score from local file"""
         file = None
         try:
             file = open("highest_score.txt")
@@ -90,6 +94,7 @@ class Score(Text):
 
 
 class StartText(Text):
+    """Start text class that tells the user to press any key to start the game"""
     def __init__(self, t_game, text, text_size=None):
         super().__init__(t_game, text.replace("", " ").upper().lstrip(), text_size)
         self.rect.center = self.screen_rect.center
@@ -98,6 +103,7 @@ class StartText(Text):
         self.expanded = True
 
     def update(self):
+        """Animating the the text by increasing and decreasing the text size"""
         if self.settings.text_size >= self.text_size > 15 and self.expanded:
             self.text_size -= int(self.text_size_animation_vel)
             self.text_size_animation_vel += 0.08
@@ -123,6 +129,7 @@ class StartText(Text):
 
 
 class Button:
+    """Button class that represents the play again button"""
     def __init__(self, t_game):
         self.image = pygame.image.load("assets/button/button.png")
         self.rect = self.image.get_rect()
@@ -136,6 +143,7 @@ class Button:
 
 
 class BulletLoadingIndicator:
+    """Loading indicator for bullets when the player's gun is empty"""
     def __init__(self, t_game):
         super().__init__()
         self.screen = t_game.screen
@@ -172,6 +180,7 @@ class BulletLoadingIndicator:
 
 
 class BulletsCount(Text):
+    """Bullets monitoring text that represents the current bullets in the player's gun"""
     def __init__(self, t_game, text_size=None):
         text = "bullets:".replace("", " ").upper().lstrip()
         super().__init__(t_game, text, text_size)

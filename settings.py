@@ -2,7 +2,9 @@ import random
 
 
 class Settings:
+    """Settings class which is responsible for most game settings"""
     def __init__(self):
+        """Init static and nonstatic settings"""
         # static settings
         self.screen_dimen = (1000, 500)
         self.screen_background_color = (5, 11, 7)
@@ -23,6 +25,7 @@ class Settings:
         self.reset_difficulty()
 
     def increase_difficulty(self):
+        """Increases game difficulty by adding 5% of each variable value to itself"""
         self.cloud_velocity += self.cloud_velocity * self.difficulty_scale
         self.ground_velocity += self.ground_velocity * self.difficulty_scale
         self.star_velocity += self.star_velocity * self.difficulty_scale
@@ -31,6 +34,7 @@ class Settings:
         self.bullet_count += random.randint(0, 1)
 
     def reset_difficulty(self):
+        """Initializing / Resetting nonstatic variables"""
         self.cloud_velocity = 1
         self.ground_velocity = 13
         self.star_velocity = 0.9
