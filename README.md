@@ -1,6 +1,6 @@
 # T-Rex_Runner
 
-A remake of legacy chrome game T-rex runner
+A remake of the legacy chrome game T-rex runner
 
 # Game play (gifs)
 ![full gif preview](https://user-images.githubusercontent.com/90382113/183738289-14ac61c6-aea5-4078-b7f0-dbafcc1b0cf2.gif)
